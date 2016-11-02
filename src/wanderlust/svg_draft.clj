@@ -8,11 +8,11 @@
 
 (def ^:private ids (atom {}))
 
-(defn reset-ids []
+(defn reset-ids! []
   (reset! ids {}))
-(defn gen-id
+(defn gen-id!
   ([prefix]
-    (gen-id prefix "-"))
+    (gen-id! prefix "-"))
   ([prefix div]
    (format "%s%s%05d"
            prefix div
@@ -40,7 +40,7 @@
             height 500
             location-step 50
             location-deviation 35}}]
-   (reset-ids)
+   (reset-ids!)
    (let [locations (locations-grid width height location-step location-deviation) ]
      [:dali/page {:width width :height height}
       (s/css "circle.location {stroke: yellow; fill: red;}")
@@ -55,9 +55,26 @@
        [:circle {:stroke :black :stroke-width 1 :fill :indigo} [0 0] 1]]
       (into
         [:g {:id "locations" :inkscape:groupmode "layer" :inkscape:label "locations"}]
-        (map (fn [coord] [:circle {:id (gen-id "location") :class "location"} coord 3]) locations))
+        (map (fn [coord] [:circle {:id (gen-id! "location") :class "location"} coord 3]) locations))
       [:g {:id "labels" :inkscape:groupmode "layer" :inkscape:label "labels"}
        [:circle {:stroke :black :stroke-width 1 :fill :indigo} [0 0] 1]]])))
+
+
+(defn generate-chart
+  ([] (generate-chart {} {}))
+  ([map-params gen-params]
+   (reset-ids!)
+   {:name "Terra Incognita"
+    :desc "HC SVNT DRACONES"
+    :width  1000
+    :height 500
+    :gen-params {
+      :location-step 50
+      :location-deviation 35}
+    :locations {}
+    :pathways {}
+    :terrain {}
+    }))
 
 (defn svg-draft->chart [svg-draft]
   (let [svg-doc (xml->doc svg-draft)]
