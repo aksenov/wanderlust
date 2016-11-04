@@ -1,4 +1,8 @@
-(ns wanderlust.geometry)
+(ns wanderlust.geometry
+  (:require [delaunay-triangulation.core :as delaunay]))
+
+(defn triangulate [points]
+  (:edges (delaunay/triangulate points)))
 
 (defn line-length
   [[[x1 y1] [x2 y2]]]
