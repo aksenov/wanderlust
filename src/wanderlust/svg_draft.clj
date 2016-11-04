@@ -70,13 +70,17 @@
 
 
 (defn gen-pathways [{:keys [locations] :as chart}]
-  (let [roads (->> locations
+  (let [weight (get-in chart [:gen-params :pathway-weight-range])
+        roads (->> locations
                    vals
                    (map :coords)
                    geometry/triangulate
                    (map set)
                    distinct
-                   (map vec))]
+                   (map vec)
+                   (map (fn [c] {:coords c
+                                 :weight (inc (rand-int weight))
+                                 :length (geometry/line-length c)})))]
     (assoc chart :draft-pathways roads)))
 
 
@@ -90,7 +94,8 @@
           :width  1000
           :height 500
           :gen-params {:location-step 50
-                       :location-deviation 35}
+                       :location-deviation 35
+                       :pathway-weight-range 5}
           :locations {}
           :pathways {}
           :terrain {}
@@ -105,9 +110,10 @@
 
 (comment
   (let [chart (generate-chart {:width 100 :height 100} {:location-step 20 :location-deviation 10})
-        draft (chart->svg-draft (generate-chart {:width 100 :height 100} {:location-step 20 :location-deviation 10}))]
+        draft (chart->svg-draft chart)]
     chart
-    (io/render-svg draft "test.svg"))
+    (io/render-svg draft "test.svg")
+    )
 )
 
 (defn svg-draft->chart [svg-draft]
@@ -135,9 +141,18 @@
    coords
    3])
 
-(defn pathways-draft [[p1 p2]]
-  [:line {:stroke :red
-          :stroke-width 1}  p1 p2])
+(defn pathways-draft [{:keys [coords weight length]}]
+  (let [[p1 p2] coords
+        color (case weight
+                1 :blue
+                2 :darkmagenta
+                3 :darkred
+                4 :red
+                5 :yellow)]
+    [:line {:stroke color
+            :stroke-width 1}  p1 p2]))
+
+;(pathways-draft {:coords [[1 2] [3 4]] :weight 3 :length 10.1})
 
 (defn chart->svg-draft [chart]
   (let [{:keys [name desc width height locations draft-pathways]} chart]
