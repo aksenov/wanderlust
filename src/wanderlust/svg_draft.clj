@@ -1,6 +1,7 @@
 (ns wanderlust.svg-draft
   (:require
    [wanderlust.geometry :as geometry]
+   [wanderlust.graph :as graph]
    [dali.io :as io]
    [dali.syntax :as s]
    [clj-xpath.core :refer :all]))
@@ -69,18 +70,52 @@
     (assoc chart :locations locations)))
 
 
+
+(defn connect-locations [locations pathway]
+  (let [[p1 p2] (:coords pathway)
+        l1 (some
+               (fn [[id {:keys [coords]}]]
+                 (when (geometry/inside-circle? p1 coords 3)
+                   id))
+               locations)
+        l2 (some
+               (fn [[id {:keys [coords]}]]
+                 (when (geometry/inside-circle? p2 coords 3)
+                   id))
+               locations)]
+    (assoc pathway :locations (if (and l1 l2)
+                                [l1 l2]
+                                :lost))))
+
+
+(comment
+  (connect-locations [["loc1" {:coords [1 1]}]
+                      ["loc2" {:coords [10 10]}]
+                      ["loc3" {:coords [20 20]}]]
+                     {:coords [[20 20] [10 10]]})
+  (geometry/inside-circle? [10 10] [10 11] 2)
+  )
+
+
+
+(defn save-loops [])
+
+(defn discard-long [pathways])
+
 (defn gen-pathways [{:keys [locations] :as chart}]
   (let [weight (get-in chart [:gen-params :pathway-weight-range])
         roads (->> locations
                    vals
                    (map :coords)
                    geometry/triangulate
+                   graph/mst-graph              
                    (map set)
                    distinct
                    (map vec)
                    (map (fn [c] {:coords c
                                  :weight (inc (rand-int weight))
-                                 :length (geometry/line-length c)})))]
+                                 :length (geometry/line-length c)}))
+                   (map (partial connect-locations locations)))]
     (assoc chart :draft-pathways roads)))
 
 
@@ -109,8 +144,9 @@
          ))))
 
 (comment
-  (let [chart (generate-chart {:width 100 :height 100} {:location-step 20 :location-deviation 10})
-        draft (chart->svg-draft chart)]
+  (let [chart (generate-chart {:width 1000 :height 1000} {:location-step 80 :location-deviation 50})
+       draft (chart->svg-draft chart)
+        ]
     chart
     (io/render-svg draft "test.svg")
     )

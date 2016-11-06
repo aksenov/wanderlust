@@ -84,6 +84,9 @@
     (and (= b1 b2) (= b2 b3))))
 
 
+(defn inside-circle? [point center radius]
+  (> radius (line-length [point center])))
+
 (defn polygon->triangles [polygon]
   (map #(conj % (first polygon)) (partition 2 1 (rest polygon))))
 
