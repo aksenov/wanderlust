@@ -29,9 +29,9 @@
        (alg/prim-mst)
        graph/edges))
 
-(defn pathways-tree [pathways]
-  (let [g (pathways-graph pathways)]
-    (graph/edges (alg/prim-mst g))))
+;(defn pathways-tree [pathways]
+;  (let [g (pathways-graph pathways)]
+;    (graph/edges (alg/prim-mst g))))
 
 
 (comment

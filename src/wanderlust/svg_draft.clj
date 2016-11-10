@@ -104,7 +104,7 @@
 
 (defn gen-pathways [{:keys [locations] :as chart}]
   (let [weight (get-in chart [:gen-params :pathway-weight-range])
-        roads (->> locations
+        pathways (->> locations
                    vals
                    (map :coords)
                    geometry/triangulate
@@ -116,7 +116,10 @@
                                  :weight (inc (rand-int weight))
                                  :length (geometry/line-length c)}))
                    (map (partial connect-locations locations)))]
-    (assoc chart :draft-pathways roads)))
+    (assoc chart :pathways
+                 (into {}
+                       (map (fn [p]
+                              [(gen-id! "pathway") p]) pathways)))))
 
 
 (defn generate-chart
@@ -144,10 +147,11 @@
          ))))
 
 (comment
+  (generate-chart {:width 100 :height 100} {:location-step 30 :location-deviation 20})
   (let [chart (generate-chart {:width 1000 :height 1000} {:location-step 80 :location-deviation 50})
-       draft (chart->svg-draft chart)
+        draft (chart->svg-draft chart)
         ]
-    chart
+    ;chart
     (io/render-svg draft "test.svg")
     )
 )
@@ -163,8 +167,15 @@
                          {:coords [(Double/parseDouble (:cx attrs))
                                    (Double/parseDouble (:cy attrs))]
                           :data   (clojure.edn/read-string text)}))
-            {} ($x "//svg/g[@id='locations']/circle" svg-doc))]
-      {:locations locations})))
+            {} ($x "//svg/g[@id='locations']/circle" svg-doc))
+          pathways
+          (reduce
+            (fn [res x]
+              )
+            {}
+            ($x "//svg/g[@id='pathways']/path" svg-doc))]
+      {:locations locations
+       :pathways pathways})))
 
 (comment
   (svg-draft->chart (slurp "./test.svg"))
@@ -191,7 +202,7 @@
 ;(pathways-draft {:coords [[1 2] [3 4]] :weight 3 :length 10.1})
 
 (defn chart->svg-draft [chart]
-  (let [{:keys [name desc width height locations draft-pathways]} chart]
+  (let [{:keys [name desc width height locations pathways]} chart]
     [:dali/page {:width width :height height}
      [:title name] [:desc desc]
      [:g {:id "terrain shapes"
@@ -210,7 +221,7 @@
      (into [:g {:id "pathways"
                 :inkscape:groupmode "layer"
                 :inkscape:label "pathways"}]
-           (map pathways-draft draft-pathways))
+           (map pathways-draft pathways))
      ]))
 
 (comment
