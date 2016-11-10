@@ -122,6 +122,13 @@
                               [(gen-id! "pathway") p]) pathways)))))
 
 
+(defn gen-terrain [{:keys [width height] :as chart}]
+  (let [{:keys [terrain-step terrain-deviation]} (:gen-params chart)
+        terrain-points (locations-grid width height terrain-step terrain-deviation)
+        terrain (geometry/voronoi terrain-points)
+        ]
+    (assoc chart :terrain terrain)))
+
 (defn generate-chart
   ([] (generate-chart {} {}))
   ([map-params gen-params]
@@ -133,7 +140,9 @@
           :height 500
           :gen-params {:location-step 50
                        :location-deviation 35
-                       :pathway-weight-range 5}
+                       :pathway-weight-range 5
+                       :terrain-step 20
+                       :terrain-deviation 5}
           :locations {}
           :pathways {}
           :terrain {}
@@ -144,10 +153,19 @@
      (-> chart
          gen-locations
          gen-pathways
+         gen-terrain
          ))))
 
 (comment
-  (generate-chart {:width 100 :height 100} {:location-step 30 :location-deviation 20})
+  (io/render-svg
+    (chart->svg-draft
+      (generate-chart {:width 500 :height 500} {:location-step 80 :location-deviation 50}))
+    "test.svg")
+
+  (locations-grid 1000 1000 10 5)
+  (geometry/voronoi (locations-grid 1000 1000 20 5) )
+  (generate-chart {:width 500 :height 500} {:location-step 80 :location-deviation 50 :terrain-step 10 :terrain-deviation 7})
+
   (let [chart (generate-chart {:width 1000 :height 1000} {:location-step 80 :location-deviation 50})
         draft (chart->svg-draft chart)
         ]
@@ -188,7 +206,7 @@
    coords
    3])
 
-(defn pathways-draft [{:keys [coords weight length]}]
+(defn pathways-draft [[id {:keys [coords weight length]}]]
   (let [[p1 p2] coords
         color (case weight
                 1 :blue
@@ -196,24 +214,34 @@
                 3 :darkred
                 4 :red
                 5 :yellow)]
-    [:line {:stroke color
+    [:line {:id id
+            :stroke color
             :stroke-width 1}  p1 p2]))
+
+(defn terrain-draft [points]
+  (into
+    [:polygon {:stroke :blue :fill :beige}] points))
 
 ;(pathways-draft {:coords [[1 2] [3 4]] :weight 3 :length 10.1})
 
 (defn chart->svg-draft [chart]
-  (let [{:keys [name desc width height locations pathways]} chart]
-    [:dali/page {:width width :height height}
+  (let [{:keys [name desc width height locations pathways terrain]} chart]
+    [:dali/page {:width width
+                 :height height
+                 :xmlns:dc "http://purl.org/dc/elements/1.1/"
+                 :xmlns:cc "http://creativecommons.org/ns#"
+                 :xmlns:rdf "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+                 :xmlns:svg "http://www.w3.org/2000/svg"
+                 :xmlns "http://www.w3.org/2000/svg"
+                 :xmlns:sodipodi "http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+                 :xmlns:inkscape "http://www.inkscape.org/namespaces/inkscape"
+                 :version "1.2"}
      [:title name] [:desc desc]
-     [:g {:id "terrain shapes"
-          :inkscape:groupmode "layer"
-          :inkscape:label "terrain-shapes"}]
-     [:g {:id "terrain shapes"
-          :inkscape:groupmode "layer"
-          :inkscape:label "terrain-shapes"}]
-     [:g {:id "terrain shapes"
-          :inkscape:groupmode "layer"
-          :inkscape:label "terrain-shapes"}]
+     (into
+       [:g {:id                 "terrain shapes"
+            :inkscape:groupmode "layer"
+            :inkscape:label     "terrain-shapes"}]
+       (map terrain-draft terrain))
      (into [:g {:id "locations"
                 :inkscape:groupmode "layer"
                 :inkscape:label "locations"}]

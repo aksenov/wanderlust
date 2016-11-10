@@ -1,8 +1,12 @@
 (ns wanderlust.geometry
-  (:require [delaunay-triangulation.core :as delaunay]))
+  (:require [delaunay-triangulation.core :as delaunay]
+            [voronoi-diagram.core :as voronoi]))
 
 (defn triangulate [points]
   (:edges (delaunay/triangulate points)))
+
+(defn voronoi [points]
+  (:cells (voronoi/diagram points)))
 
 (defn line-length
   [[[x1 y1] [x2 y2]]]
