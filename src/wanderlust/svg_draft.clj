@@ -127,7 +127,8 @@
         terrain-points (locations-grid width height terrain-step terrain-deviation)
         terrain (geometry/voronoi terrain-points)
         ]
-    (assoc chart :terrain terrain)))
+    (assoc chart :terrain {:points terrain-points
+                           :edges  terrain})))
 
 (defn generate-chart
   ([] (generate-chart {} {}))
@@ -157,10 +158,11 @@
          ))))
 
 (comment
-  (io/render-svg
-    (chart->svg-draft
-      (generate-chart {:width 500 :height 500} {:location-step 80 :location-deviation 50}))
-    "test.svg")
+  (time
+    (io/render-svg
+      (chart->svg-draft
+        (generate-chart {:width 512 :height 512} {:location-step 48 :location-deviation 36 :terrain-step 16 :terrain-deviation 8}))
+      "test.svg"))
 
   (locations-grid 1000 1000 10 5)
   (geometry/voronoi (locations-grid 1000 1000 20 5) )
@@ -176,7 +178,6 @@
 
 (defn svg-draft->chart [svg-draft]
   (let [svg-doc (xml->doc svg-draft)]
-    (prn svg-doc)
     (let [locations
           (reduce
             (fn [res {:keys [attrs text]}]
@@ -222,6 +223,9 @@
   (into
     [:polygon {:stroke :blue :fill :beige}] points))
 
+(defn terrain-points [points]
+  [:circle {:stroke :blue :stroke-width 1 :fill :blue} points 1])
+
 ;(pathways-draft {:coords [[1 2] [3 4]] :weight 3 :length 10.1})
 
 (defn chart->svg-draft [chart]
@@ -241,7 +245,12 @@
        [:g {:id                 "terrain shapes"
             :inkscape:groupmode "layer"
             :inkscape:label     "terrain-shapes"}]
-       (map terrain-draft terrain))
+       (map terrain-draft (:edges terrain)))
+     (into
+       [:g {:id                 "terrain points"
+            :inkscape:groupmode "layer"
+            :inkscape:label     "terrain-points"}]
+       (map terrain-points (:points terrain)))
      (into [:g {:id "locations"
                 :inkscape:groupmode "layer"
                 :inkscape:label "locations"}]

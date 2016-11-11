@@ -6,7 +6,7 @@
   (:edges (delaunay/triangulate points)))
 
 (defn voronoi [points]
-  (:cells (voronoi/diagram points)))
+  (:edges (voronoi/diagram points)))
 
 (defn line-length
   [[[x1 y1] [x2 y2]]]
