@@ -125,7 +125,7 @@
 (defn gen-terrain [{:keys [width height] :as chart}]
   (let [{:keys [terrain-step terrain-deviation]} (:gen-params chart)
         terrain-points (locations-grid width height terrain-step terrain-deviation)
-        terrain (geometry/voronoi terrain-points)
+        terrain (geometry/voronoi terrain-points [[0 width] [0 height]])
         ]
     (assoc chart :terrain {:points terrain-points
                            :edges  terrain})))

@@ -1,12 +1,18 @@
 (ns wanderlust.geometry
   (:require [delaunay-triangulation.core :as delaunay]
-            [voronoi-diagram.core :as voronoi]))
+            [wanderlust.voronoi :as voronoi]))
+
+;; y = ((x - xf)^2 +yf^2 - L^2)/(2*(yf - L))
+(defn parabola [x f L]
+  (+
+   (Math/pow (- x (* x f)) 2)
+   (- (* ))))
 
 (defn triangulate [points]
   (:edges (delaunay/triangulate points)))
 
-(defn voronoi [points]
-  (:edges (voronoi/diagram points)))
+(defn voronoi [points boundary]
+  (map :edge (voronoi/generate-diagram points boundary 1)))
 
 (defn line-length
   [[[x1 y1] [x2 y2]]]

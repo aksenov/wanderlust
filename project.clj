@@ -10,5 +10,6 @@
                  [trystan/delaunay-triangulation "1.0.1"]
                  [com.github.kyleburton/clj-xpath "1.4.3"]]
   :main ^:skip-aot wanderlust.core
+  :java-source-paths ["java"]
   :target-path "target/%s"
   :profiles {:uberjar {:aot :all}})
