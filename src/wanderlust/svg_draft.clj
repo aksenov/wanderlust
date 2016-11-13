@@ -125,7 +125,7 @@
 (defn gen-terrain [{:keys [width height] :as chart}]
   (let [{:keys [terrain-step terrain-deviation]} (:gen-params chart)
         terrain-points (locations-grid width height terrain-step terrain-deviation)
-        terrain (geometry/voronoi terrain-points [[0 width] [0 height]])
+        terrain (geometry/voronoi terrain-points [[0 0] [width height]])
         ]
     (assoc chart :terrain {:points terrain-points
                            :edges  terrain})))
@@ -161,8 +161,13 @@
   (time
     (io/render-svg
       (chart->svg-draft
-        (generate-chart {:width 512 :height 512} {:location-step 48 :location-deviation 36 :terrain-step 16 :terrain-deviation 8}))
+        (generate-chart {:width 1024 :height 512} {:location-step 48 :location-deviation 36 :terrain-step 16 :terrain-deviation 8}))
       "test.svg"))
+
+  (filter (fn [{:keys [edge sites]}] (every? (fn [x] (< x 10)) sites))
+            (wanderlust.voronoi/generate-diagram
+   (locations-grid 100 200 10 5) [[0 0] [100 200]] 1))
+  
 
   (locations-grid 1000 1000 10 5)
   (geometry/voronoi (locations-grid 1000 1000 20 5) )
@@ -221,10 +226,10 @@
 
 (defn terrain-draft [points]
   (into
-    [:polygon {:stroke :blue :fill :beige}] points))
+    [:polygon {:stroke :gray :fill :beige}] points))
 
 (defn terrain-points [points]
-  [:circle {:stroke :blue :stroke-width 1 :fill :blue} points 1])
+  [:circle {:stroke :darkgray :stroke-width 1 :fill :blue} points 1])
 
 ;(pathways-draft {:coords [[1 2] [3 4]] :weight 3 :length 10.1})
 

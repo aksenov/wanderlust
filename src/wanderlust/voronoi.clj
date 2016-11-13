@@ -19,19 +19,41 @@
     (map edge+sites
          (.generateVoronoi v xs ys minx maxx miny maxy))))
 
+(defn edges [points diagram]
+  (map
+   (fn [x]
+     (let [f (fn [ss] (map #(nth points %) ss))]
+       (update x :sites f)))
+   diagram))
 
+(defn cells [points diagram]
+  (let [edge+sets (map
+                   #(update % :sites set)
+                   diagram)]
+    (for [i (range (count points))]
+      {:center (nth points i)
+       :border (->> edge+sets
+                   (filter
+                    #((:sites %) i))
+                   (mapcat :edge)
+                   )})))
 
-#_(comment
+(comment
+
+  
+  
   (rand)
-  (def pts (for [x (range 10 990 10)
-               y (range 10 490 10)]
+  (def pts (for [x (range 10 99 5)
+               y (range 10 49 5)]
            [(+ x (* 5 (rand)))
             (+ y (* 5 (rand)))]))
 (def bound [[0 0] [1000 500]])
 
   (.getSites (Voronoi. 1))
   (time
-   (generate-diagram pts bound 1))
+   (edges pts (generate-diagram pts bound 1))
+
+   )
   (require '[dali.io :as io])
   (io/render-svg
    [:dali/page
