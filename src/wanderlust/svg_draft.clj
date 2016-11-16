@@ -205,14 +205,22 @@
   (svg-draft->chart (slurp "./test.svg"))
   )
 
-(defn location-draft [[id {:keys [coords]}]]
+(defn location-draft [[id {:keys [coords] :as location}]]
   [:circle {:id id
             :stroke :yellow
-            :fill :red}
+            :fill :red
+            :data (str location)}
    coords
    3])
 
-(defn pathways-draft [[id {:keys [coords weight length]}]]
+
+(defn polyline->path [polyline]
+  (let [r (rest polyline)]
+    (interleave (cons :M (repeat (count r) :L))
+                        polyline)))
+
+
+(defn pathways-draft [[id {:keys [coords weight length] :as pathway}]]
   (let [[p1 p2] coords
         color (case weight
                 1 :blue
@@ -220,9 +228,12 @@
                 3 :darkred
                 4 :red
                 5 :yellow)]
-    [:line {:id id
-            :stroke color
-            :stroke-width 1}  p1 p2]))
+    (into
+     [:path {:id id
+             :stroke color
+             :stroke-width 1
+             :data (str pathway)}]
+     (polyline->path coords))))
 
 (defn terrain-draft [points]
   (into
@@ -230,6 +241,7 @@
 
 (defn terrain-points [points]
   [:circle {:stroke :darkgray :stroke-width 1 :fill :blue} points 1])
+
 
 ;(pathways-draft {:coords [[1 2] [3 4]] :weight 3 :length 10.1})
 
