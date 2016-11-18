@@ -2,11 +2,6 @@
   (:require [delaunay-triangulation.core :as delaunay]
             [wanderlust.voronoi :as voronoi]))
 
-;; y = ((x - xf)^2 +yf^2 - L^2)/(2*(yf - L))
-(defn parabola [x f L]
-  (+
-   (Math/pow (- x (* x f)) 2)
-   (- (* ))))
 
 (defn triangulate [points]
   (:edges (delaunay/triangulate points)))
@@ -104,7 +99,16 @@
   (boolean (some #(inside-triangle? point %) (polygon->triangles polygon))))
 
 
+(defn centroid [polygon]
+  (let [n (count polygon)]
+    [(/ (reduce + (map first polygon)) n)
+     (/ (reduce + (map second polygon)) n)]))
+
+
 (comment
+
+  (centroid [[0 0] [0 10] [10 10] [10 0]])
+
 
   (line-length [[10 40] [11 30]])
 
