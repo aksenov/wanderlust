@@ -29,3 +29,9 @@ Generaing fantsy maps
 http://mewo2.com/notes/terrain/
 https://github.com/mewo2/terrain/blob/master/terrain.js
 
+Conveh hull Grahm's scan
+http://www.geeksforgeeks.org/convex-hull-set-2-graham-scan/
+http://blog.asymptotic.co.uk/2009/11/graham-scan-convex-hull-clojure/
+
+Perlin noise
+https://github.com/indy/perlin
