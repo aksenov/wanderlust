@@ -224,6 +224,28 @@
             :stroke color
             :stroke-width 1}  p1 p2]))
 
+(defn path->commands [path-str]
+  (->> (re-seq #"([aAqQtTsScCvVhHlLzZmM])([\d ,.+-]+)" path-str)
+       (mapv
+         (fn [[_ c pts]]
+           [(keyword c)
+            (mapv #(Double/parseDouble %)
+                  (re-seq #"[+-]*[\d.]+" pts))]))))
+
+(defn linerize-path-commands [path-commands]
+  (map
+   (fn [[c pts]]
+     (case c
+       :M pts
+       :L pts
+       :C [(first pts) (last pts)]
+       :Q [(first pts) (last pts)]))
+   path-commands))
+
+(comment 
+  (linerize-path-commands (path->commands "M 77.142857,120.93363 L 65.714286,872.3622 L 677.14286,889.50506 L 654.28571,498.07649 C 629.28431,510.74052 561.12423,499.78185 554.28571,438.07649 C 540,438.07649 380,520.93363 380,520.93363 L 308.57143,412.3622 L 420,255.21935 L 374.28571,143.79078 L 257.14286,75.219348 L 157.14286,163.79078 L 85.714286,120.93363 Z"))
+)
+
 (defn terrain-draft [points]
   (into
     [:polygon {:stroke :gray :fill :beige}] points))

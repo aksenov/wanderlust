@@ -105,7 +105,35 @@
      (/ (reduce + (map second polygon)) n)]))
 
 
+;;https://tombooth.co.uk/painting-in-clojure/
+(defn recur-relation [t a b]
+  (+ (* t b) (* a (- 1 t))))
+
+(defn for-component [t component-vals]
+  (if (= (count component-vals) 1)
+    (first component-vals)
+    (for-component t
+      (map #(recur-relation t %1 %2) component-vals (rest component-vals)))))
+
+(defn for-t [t components]
+  (map #(for-component t %) components))
+
+(defn de-casteljau [control-points step-amount]
+  (let [x-vals (map first control-points)
+        y-vals (map second control-points)
+        z-vals (map #(nth % 2) control-points)
+        points (map #(for-t % [x-vals y-vals z-vals]) (range 0 1 step-amount))]
+    points))
+
+
+
 (comment
+
+  (de-casteljau [[50 10 0] [40 20 0] [20 20 0] [10 10 0]] 0.1)
+;; bad points
+  (de-casteljau [[654.28571,498.07649] [568.57143,438.07649] [554.28571,438.07649]] 0.1)
+
+
 
   (centroid [[0 0] [0 10] [10 10] [10 0]])
 
