@@ -119,11 +119,17 @@
   (map #(for-component t %) components))
 
 (defn de-casteljau [control-points step-amount]
-  (let [x-vals (map first control-points)
-        y-vals (map second control-points)
-        z-vals (map #(nth % 2) control-points)
-        points (map #(for-t % [x-vals y-vals z-vals]) (range 0 1 step-amount))]
-    points))
+  ;;(prn "DC" control-points)
+  (try
+    (let [x-vals (map first control-points)
+          y-vals (map second control-points)
+          z-vals (repeat (count control-points) 0)
+          ;;(map #(nth % 2) control-points)
+          points (map butlast (map #(for-t % [x-vals y-vals z-vals]) (range 0 1 step-amount)))]
+      points)
+    (catch Exception e
+      ;;(prn "De Casteljau failed")
+      nil)))
 
 
 

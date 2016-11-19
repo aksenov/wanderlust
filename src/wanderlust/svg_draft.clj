@@ -161,7 +161,7 @@
   (time
     (io/render-svg
       (chart->svg-draft
-        (generate-chart {:width 1024 :height 512} {:location-step 48 :location-deviation 36 :terrain-step 16 :terrain-deviation 8}))
+        (generate-chart {:width 96 :height 96} {:location-step 10 :location-deviation 7 :terrain-step 4 :terrain-deviation 2}))
       "test.svg"))
 
   (filter (fn [{:keys [edge sites]}] (every? (fn [x] (< x 10)) sites))
@@ -185,24 +185,43 @@
   (let [svg-doc (xml->doc svg-draft)]
     (let [locations
           (reduce
-            (fn [res {:keys [attrs text]}]
+            (fn [res {:keys [attrs data]}]
               (prn attrs text)
               (assoc res (:id attrs)
                          {:coords [(Double/parseDouble (:cx attrs))
                                    (Double/parseDouble (:cy attrs))]
-                          :data   (clojure.edn/read-string text)}))
+                          :data   (clojure.edn/read-string (:data attrs))}))
             {} ($x "//svg/g[@id='locations']/circle" svg-doc))
+
           pathways
           (reduce
-            (fn [res x]
-              )
-            {}
-            ($x "//svg/g[@id='pathways']/path" svg-doc))]
+           (fn [res {:keys [attrs data]}]
+             (assoc res (:id attrs)
+                    (merge (clojure.edn/read-string (:data attrs))
+                           {:coords  (linerize-path-commands
+                                      (path->commands (:d attrs)))})))
+           {}
+           ($x "//svg/g[@id='pathways']/path" svg-doc))
+
+          terrain
+          (reduce
+           (fn [res {:keys [attr data]}]
+             )
+           {}
+           ($x "//svg/g[@id='terrain']/line"))]
       {:locations locations
        :pathways pathways})))
 
 (comment
-  (svg-draft->chart (slurp "./test.svg"))
+  (let [ #_(io/render-svg
+           (chart->svg-draft
+            (generate-chart {:width 96 :height 96} {:location-step 16 :location-deviation 8 :terrain-step 8 :terrain-deviation 4}))
+           "test.svg")
+        x (svg-draft->chart (slurp "./test.svg"))
+        y (chart->svg-draft x)]
+       (io/render-svg y "test2.svg")
+    y
+    )
   )
 
 (defn location-draft [[id {:keys [coords] :as location}]]
@@ -221,17 +240,18 @@
 
 
 (defn pathways-draft [[id {:keys [coords weight length] :as pathway}]]
-  (let [[p1 p2] coords
-        color (case weight
+  (let [color (case weight
                 1 :blue
                 2 :darkmagenta
                 3 :darkred
                 4 :red
-                5 :yellow)]
+                5 :yellow
+                :black)]
     (into
      [:path {:id id
              :stroke color
              :stroke-width 1
+             :fill :none
              :data (str pathway)}]
      (polyline->path coords))))
 
@@ -241,16 +261,24 @@
          (fn [[_ c pts]]
            [(keyword c)
             (mapv #(Double/parseDouble %)
-                  (re-seq #"[+-]*[\d.]+" pts))]))))
+                  (let [res (re-seq #"[+-]*[\d.]+" pts)]
+                    (prn res)
+                    res))]))))
 
 (defn linerize-path-commands [path-commands]
-  (map
-   (fn [[c pts]]
-     (case c
-       :M pts
-       :L pts
-       :C [(first pts) (last pts)]
-       :Q [(first pts) (last pts)]))
+  (reduce
+   (fn [res [c pts]]
+     (into res
+           (case c
+             :M [pts]
+             :L [pts]
+             :C (if-let [points (map vec (geometry/de-casteljau (partition 2 pts) 0.1))]
+                  points
+                  [(first pts) (last pts)])
+             :Q (if-let [points (map vec (geometry/de-casteljau (partition 2 pts) 0.1))]
+                  points
+                  [(first pts) (last pts)]))))
+   []
    path-commands))
 
 (comment 
