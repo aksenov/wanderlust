@@ -32,35 +32,6 @@
       [(opx x rx) (opy y ry)])))
 
 
-(defn generate-draft
-  ([] (generate-draft {}))
-  ([{:keys [name desc width height location-step location-deviation]
-     :or   {name "Terra Incognita"
-            desc "HC SVNT DRACONES"
-            width  1000
-            height 500
-            location-step 50
-            location-deviation 35}}]
-   (reset-ids!)
-   (let [locations (locations-grid width height location-step location-deviation) ]
-     [:dali/page {:width width :height height}
-      (s/css "circle.location {stroke: yellow; fill: red;}")
-      #_(into [:g {:id "terrain" :inkscape:groupmode "layer" :inkscape:label "terrain"}]
-              (voronoi-lines (locations-grid 1000 500 20 18)))
-      [:g {:id "terrain shapes" :inkscape:groupmode "layer" :inkscape:label "terrain-shapes"}
-       [:rect {:id "primal-ocean" :stroke :midnightblue :fill :midnightblue}
-        [0 0] [width height]]]
-      [:g {:id "connections" :inkscape:groupmode "layer" :inkscape:label "connections"}
-       [:circle {:stroke :black :stroke-width 1 :fill :indigo} [0 0] 1]]
-      [:g {:id "pathways" :inkscape:groupmode "layer" :inkscape:label "pathways"}
-       [:circle {:stroke :black :stroke-width 1 :fill :indigo} [0 0] 1]]
-      (into
-        [:g {:id "locations" :inkscape:groupmode "layer" :inkscape:label "locations"}]
-        (map (fn [coord] [:circle {:id (gen-id! "location") :class "location"} coord 3]) locations))
-      [:g {:id "labels" :inkscape:groupmode "layer" :inkscape:label "labels"}
-       [:circle {:stroke :black :stroke-width 1 :fill :indigo} [0 0] 1]]])))
-
-
 (defn gen-locations [{:keys [width height] :as chart}]
   (let [{:keys [location-step location-deviation]} (:gen-params chart)
         location-points (locations-grid width height location-step location-deviation)
@@ -186,7 +157,6 @@
     (let [locations
           (reduce
             (fn [res {:keys [attrs data]}]
-              (prn attrs text)
               (assoc res (:id attrs)
                          {:coords [(Double/parseDouble (:cx attrs))
                                    (Double/parseDouble (:cy attrs))]
@@ -262,7 +232,6 @@
            [(keyword c)
             (mapv #(Double/parseDouble %)
                   (let [res (re-seq #"[+-]*[\d.]+" pts)]
-                    (prn res)
                     res))]))))
 
 (defn linerize-path-commands [path-commands]
