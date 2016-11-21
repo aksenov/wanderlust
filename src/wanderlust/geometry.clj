@@ -7,7 +7,7 @@
   (:edges (delaunay/triangulate points)))
 
 (defn voronoi [points boundary]
-  (map :edge (voronoi/generate-diagram points boundary 1)))
+  (voronoi/mesh (voronoi/generate-diagram points boundary 1)))
 
 (defn line-length
   [[[x1 y1] [x2 y2]]]

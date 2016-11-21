@@ -2,6 +2,7 @@
   (:require
    [wanderlust.geometry :as geometry]
    [wanderlust.graph :as graph]
+   [wanderlust.svg-colors :as svg-colors]
    [dali.io :as io]
    [dali.syntax :as s]
    [clj-xpath.core :refer :all]))
@@ -96,10 +97,11 @@
 (defn gen-terrain [{:keys [width height] :as chart}]
   (let [{:keys [terrain-step terrain-deviation]} (:gen-params chart)
         terrain-points (locations-grid width height terrain-step terrain-deviation)
-        terrain (geometry/voronoi terrain-points [[0 0] [width height]])
+        terrain-polygons (geometry/voronoi terrain-points [[0 0] [width height]])
+        terain-mesh ()
         ]
     (assoc chart :terrain {:points terrain-points
-                           :edges  terrain})))
+                           :edges  terrain-polygons})))
 
 (defn generate-chart
   ([] (generate-chart {} {}))
@@ -144,12 +146,13 @@
   (geometry/voronoi (locations-grid 1000 1000 20 5) )
   (generate-chart {:width 500 :height 500} {:location-step 80 :location-deviation 50 :terrain-step 10 :terrain-deviation 7})
 
-  (let [chart (generate-chart {:width 1000 :height 1000} {:location-step 80 :location-deviation 50})
-        draft (chart->svg-draft chart)
-        ]
-    ;chart
-    (io/render-svg draft "test.svg")
-    )
+  (time
+   (let [chart (generate-chart {:width 1000 :height 1000} {:location-step 80 :location-deviation 50})
+         draft (chart->svg-draft chart)
+         ]
+                                        ;chart
+     (io/render-svg draft "test.svg")
+     ))
 )
 
 (defn svg-draft->chart [svg-draft]
@@ -256,7 +259,9 @@
 
 (defn terrain-draft [points]
   (into
-    [:polygon {:stroke :gray :fill :beige}] points))
+   [:polygon {:stroke :gray
+              :stroke-width 0.1
+              :fill :none}] points))
 
 (defn terrain-points [points]
   [:circle {:stroke :darkgray :stroke-width 1 :fill :blue} points 1])
