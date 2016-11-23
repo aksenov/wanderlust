@@ -31,13 +31,30 @@
    diagram))
 
 
+(defn f=
+  ([x y] (f= x y 0.00001))
+  ([x y eps]
+   (<= (Math/abs (- x y)) eps)))
+
+(defn remove-border-points [mesh [[x1 y1] [x2 y2]]]
+  (remove
+   (fn [pts]
+     (some (fn [[x y]]
+             (or (f= x x1) (f= x x2)
+                  (f= y y1) (f= y y2)))
+            pts))
+   mesh))
+
 
 (comment
-(let [pts [[10 10] [20 20] [30 10] [20 5]]
+  (let [pts [[10 10] [20 20] [30 10] [20 5]]
+        brd [[0 0] [40 40]]
         dia (generate-diagram
              pts
-             [[0 0] [40 40]] 1)]
-  (mesh dia))
+             brd  1)]
+    ;(clojure.pprint/pprint (remove #(some (fn [[x y]] (= 0 x)) %)  (mesh dia)))
+  (remove-border-points (mesh dia) brd)
+   )
   )
 
 (comment
@@ -81,7 +98,7 @@
      :lightsteelblue :lightyellow :lime :limegreen :linen :magentaia :maroon :mediumaquamarine :mediumblue :mediumorchid :mediumpurple :mediumseagreen :mediumslateblue :mediumspringgreen :mediumturquoise :mediumvioletred :midnightblue :mintcream :mistyrose :moccasin :navajowhite :navy :oldlace :olive
      :olivedrab :orange :orangered :orchid :palegoldenrod :palegreen :paleturquoise :palevioletred :papayawhip :peachpuff :peru :pink :plum :powderblue :purpled :red :rosybrown :royalblue :saddlebrown :salmon :sandybrown :seagreen :seashell :sienna :silverd :skyblue :slateblue :slategray :slategrey :snow :springgreen :steelblue :tan :teald :thistle :tomato :turquoise :violet :wheat :white :whitesmoke :yellow :yellowgreen])
   
-  (let [
+  (let [pts [[10 10] [20 20] [30 10] [20 5
         dia (generate-diagram
              pts
              [[0 0] [40 40]] 1)

@@ -261,7 +261,7 @@
   (into
    [:polygon {:stroke :gray
               :stroke-width 0.1
-              :fill :none}] points))
+              :fill (rand-nth wanderlust.svg-colors/colors)}] points))
 
 (defn terrain-points [points]
   [:circle {:stroke :darkgray :stroke-width 1 :fill :blue} points 1])
