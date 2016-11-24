@@ -103,6 +103,16 @@
     (assoc chart :terrain {:points terrain-points
                            :edges  terrain-polygons})))
 
+(defn gen-terrain-shapes [{:keys [width height] :as chart}]
+  (let [ocean {:coords [[0 0] [0 height] [width height] [width 0]]
+               :terrain :ocean}
+        plains {:coords   [[0 0]
+                          [0 height]
+                          [width 0]]
+                :terrain :plains}]
+    (-> chart
+        (assoc-in [:terrain :shapes] [ocean plains]))))
+
 (defn generate-chart
   ([] (generate-chart {} {}))
   ([map-params gen-params]
@@ -128,6 +138,7 @@
          gen-locations
          gen-pathways
          gen-terrain
+         gen-terrain-shapes
          ))))
 
 (comment
@@ -181,7 +192,7 @@
            (fn [res {:keys [attr data]}]
              )
            {}
-           ($x "//svg/g[@id='terrain']/line"))]
+           ($x "//svg/g[@id='terrain-shapes']/path"))]
       {:locations locations
        :pathways pathways})))
 
@@ -267,6 +278,15 @@
   [:circle {:stroke :darkgray :stroke-width 1 :fill :blue} points 1])
 
 
+(def shapes-colors
+  {:ocean :darkblue
+   :plains :palegreen})
+
+(defn terrain-shapes-draft [{:keys [terrain coords] :as shape}]
+  (into
+    [:path {:stroke (get shapes-colors terrain)
+            :fill (get shapes-colors terrain)}] (polyline->path coords)))
+
 ;(pathways-draft {:coords [[1 2] [3 4]] :weight 3 :length 10.1})
 
 (defn chart->svg-draft [chart]
@@ -285,20 +305,30 @@
      (into
        [:g {:id                 "terrain shapes"
             :inkscape:groupmode "layer"
-            :inkscape:label     "terrain-shapes"}]
+            :inkscape:label     "terrain-shapes"
+            :sodipodi:insensitive true}]
+       (map terrain-shapes-draft (:shapes terrain)))
+     (into
+       [:g {:id                 "terrain mesh"
+            :inkscape:groupmode "layer"
+            :inkscape:label     "terrain-shapes"
+            :sodipodi:insensitive true}]
        (map terrain-draft (:edges terrain)))
      (into
        [:g {:id                 "terrain points"
             :inkscape:groupmode "layer"
-            :inkscape:label     "terrain-points"}]
+            :inkscape:label     "terrain-points"
+            :sodipodi:insensitive true}]
        (map terrain-points (:points terrain)))
      (into [:g {:id "locations"
                 :inkscape:groupmode "layer"
-                :inkscape:label "locations"}]
+                :inkscape:label "locations"
+                :sodipodi:insensitive true}]
            (map location-draft locations))
      (into [:g {:id "pathways"
                 :inkscape:groupmode "layer"
-                :inkscape:label "pathways"}]
+                :inkscape:label "pathways"
+                :sodipodi:insensitive true}]
            (map pathways-draft pathways))
      ]))
 
