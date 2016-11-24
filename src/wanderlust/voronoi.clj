@@ -1,7 +1,9 @@
 (ns wanderlust.voronoi
+  "Work around Voronoi diagrams."
   (:import (be.humphreys.simplevoronoi Voronoi)))
 
 (defn- edge+sites
+  "Format edge and sites points into hashmap."
   [pts e]
   {:edge [[(.-x1 e) (.-y1 e)] [(.-x2 e) (.-y2 e)]]
    :sites [(nth pts (.-site1 e))
@@ -9,7 +11,8 @@
 
 
 (defn generate-diagram
-  "`pts` - sequence of sites [[x1 y1] [x2 y2]]
+  "Generate Voronoi diagram.
+  `pts` - sequence of sites [[x1 y1] [x2 y2]]
   `boundary` - boundary rect [[xmin ymin] [xmax ymax]]
   `min-dist` - minimal distance between sites`"
   [pts boundary min-dist]
@@ -22,7 +25,9 @@
          (.generateVoronoi v xs ys minx maxx miny maxy))))
 
 
-(defn mesh [diagram]
+(defn mesh
+  "Generate triangulated mesh from Voronoi `diagram`."
+  [diagram]
   (mapcat
    (fn [{:keys [edge sites]}]
      (let [[p1 p2] sites]
@@ -31,12 +36,15 @@
    diagram))
 
 
-(defn f=
+(defn- f=
+  "Compare float values."
   ([x y] (f= x y 0.00001))
   ([x y eps]
    (<= (Math/abs (- x y)) eps)))
 
-(defn remove-border-points [mesh [[x1 y1] [x2 y2]]]
+(defn remove-border-points
+  "Remove triangles with border points from `mesh`."
+  [mesh [[x1 y1] [x2 y2]]]
   (remove
    (fn [pts]
      (some (fn [[x y]]
